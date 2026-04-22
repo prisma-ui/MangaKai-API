@@ -43,7 +43,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: `http://localhost:${port}`,
+        url: `http://localhost:${port}`, // Catatan: Jika deploy ke production, kamu mungkin perlu menambahkan URL production di sini juga
       },
     ],
   },
@@ -51,7 +51,18 @@ const swaggerOptions = {
 };
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
+// --- BAGIAN YANG DITAMBAHKAN/DIUBAH UNTUK FIX HALAMAN BLANK ---
+const swaggerUiOptions = {
+  customCssUrl: 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.31.0/swagger-ui.min.css',
+  customJs: [
+    'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.31.0/swagger-ui-bundle.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.31.0/swagger-ui-standalone-preset.js'
+  ]
+};
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs, swaggerUiOptions));
+// -------------------------------------------------------------
 
 const rekomendasiRoute = require("./routes/rekomendasi");
 const terbaruRoute = require("./routes/terbaru");
