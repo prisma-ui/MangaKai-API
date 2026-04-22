@@ -1,6 +1,7 @@
 const express = require("express");
 const swaggerUi = require("swagger-ui-express");
 const swaggerJsDoc = require("swagger-jsdoc");
+const path = require("path");
 
 // Tambahkan penanganan error global
 process.on("uncaughtException", (err) => {
@@ -43,26 +44,37 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: `http://localhost:${port}`, // Catatan: Jika deploy ke production, kamu mungkin perlu menambahkan URL production di sini juga
+        url: "https://mangakai-api.vercel.app", 
+      },
+      {
+        url: `http://localhost:${port}`,
       },
     ],
   },
-  apis: ["./routes/*.js"],
+  // Menggunakan absolute path agar Vercel bisa menemukan file route
+  apis: [path.join(__dirname, "routes", "*.js")],
 };
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 
-// --- BAGIAN YANG DITAMBAHKAN/DIUBAH UNTUK FIX HALAMAN BLANK ---
-const swaggerUiOptions = {
-  customCssUrl: 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.31.0/swagger-ui.min.css',
-  customJs: [
-    'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.31.0/swagger-ui-bundle.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.31.0/swagger-ui-standalone-preset.js'
-  ]
-};
+// Konfigurasi CSS eksternal untuk mengatasi blank page di Vercel
+const CSS_URL = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.1.0/swagger-ui.min.css";
 
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs, swaggerUiOptions));
-// -------------------------------------------------------------
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerDocs, {
+    customCss:
+      '.swagger-ui .opblock .opblock-summary-path-description-wrapper { align-items: center; display: flex; flex-wrap: wrap; gap: 0 10px; padding: 0 10px; width: 100%; }',
+    customCssUrl: CSS_URL,
+  })
+);
+
+// Endpoint debugging untuk mengecek apakah JSON berhasil di-generate
+app.get('/api-docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerDocs);
+});
 
 const rekomendasiRoute = require("./routes/rekomendasi");
 const terbaruRoute = require("./routes/terbaru");
